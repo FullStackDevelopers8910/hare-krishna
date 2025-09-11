@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Login & Registration</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+  }
+  .container {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 8px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    width: 350px;
+  }
+  .tab-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+  }
+  .tab-buttons button {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: #ddd;
+    font-weight: bold;
+    border-radius: 4px 4px 0 0;
+  }
+  .tab-buttons button.active {
+    background-color: #4CAF50;
+    color: white;
+  }
+  form {
+    display: none;
+  }
+  form.active {
+    display: block;
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+  }
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .show-password {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+  }
+  .show-password input {
+    margin-right: 6px;
+  }
+  button.submit-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  button.submit-btn:hover {
+    background-color: #45a049;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="tab-buttons">
+    <button id="loginTab" class="active">Login</button>
+    <button id="registerTab">Register</button>
+  </div>
+
+  <!-- Login Form -->
+  <form id="loginForm" class="active">
+    <label for="loginEmail">Email</label>
+    <input type="email" id="loginEmail" name="loginEmail" required />
+
+    <label for="loginPassword">Password</label>
+    <input type="password" id="loginPassword" name="loginPassword" required />
+
+    <div class="show-password">
+      <input type="checkbox" id="loginShowPassword" />
+      <label for="loginShowPassword">Show Password</label>
+    </div>
+
+    <button type="submit" class="submit-btn">Login</button>
+  </form>
+
+  <!-- Registration Form -->
+  <form id="registerForm">
+    <label for="regUsername">Username</label>
+    <input type="text" id="regUsername" name="regUsername" required />
+
+    <label for="regEmail">Email</label>
+    <input type="email" id="regEmail" name="regEmail" required />
+
+    <label for="regPassword">Password</label>
+    <input type="password" id="regPassword" name="regPassword" required />
+
+    <label for="regConfirmPassword">Confirm Password</label>
+    <input type="password" id="regConfirmPassword" name="regConfirmPassword" required />
+
+    <div class="show-password">
+      <input type="checkbox" id="regShowPassword" />
+      <label for="regShowPassword">Show Passwords</label>
+    </div>
+
+    <button type="submit" class="submit-btn">Register</button>
+  </form>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+
+<script>
+  // Your Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCJFJ07EfQeHWI-Ja1amBuLgY0gNA9t7Hk",
+    authDomain: "registration-form123.firebaseapp.com",
+    databaseURL: "https://registration-form123-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "registration-form123",
+    storageBucket: "registration-form123.firebasestorage.app",
+    messagingSenderId: "594231464811",
+    appId: "1:594231464811:web:df1f5dda4fae26df8db22e",
+    measurementId: "G-SG41B4J04G"
+  };
+
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  // Tab switching logic
+  const loginTabBtn = document.getElementById('loginTab');
+  const registerTabBtn = document.getElementById('registerTab');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+
+  loginTabBtn.addEventListener('click', () => {
+    loginTabBtn.classList.add('active');
+    registerTabBtn.classList.remove('active');
+    loginForm.classList.add('active');
+    registerForm.classList.remove('active');
+  });
+
+  registerTabBtn.addEventListener('click', () => {
+    registerTabBtn.classList.add('active');
+    loginTabBtn.classList.remove('active');
+    registerForm.classList.add('active');
+    loginForm.classList.remove('active');
+  });
+
+  // Show/hide password Login form
+  const loginPasswordInput = document.getElementById('loginPassword');
+  const loginShowPasswordCheckbox = document.getElementById('loginShowPassword');
+
+  loginShowPasswordCheckbox.addEventListener('change', () => {
+    loginPasswordInput.type = loginShowPasswordCheckbox.checked ? 'text' : 'password';
+  });
+
+  // Show/hide password Registration form
+  const regPasswordInput = document.getElementById('regPassword');
+  const regConfirmPasswordInput = document.getElementById('regConfirmPassword');
+  const regShowPasswordCheckbox = document.getElementById('regShowPassword');
+
+  regShowPasswordCheckbox.addEventListener('change', () => {
+    const type = regShowPasswordCheckbox.checked ? 'text' : 'password';
+    regPasswordInput.type = type;
+    regConfirmPasswordInput.type = type;
+  });
+
+  // Handle login form submit
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const email = e.target.loginEmail.value;
+    const password = e.target.loginPassword.value;
+
+    auth.signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        alert('Login successful! Welcome ' + userCredential.user.email);
+        // TODO: Redirect to dashboard or home page
+      })
+      .catch(error => {
+        alert('Login failed: ' + error.message);
+      });
+  });
+
+  // Handle registration form submit
+  registerForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const username = e.target.regUsername.value;
+    const email = e.target.regEmail.value;
+    const password = e.target.regPassword.value;
+    const confirmPassword = e.target.regConfirmPassword.value;
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        alert('Registration successful! Welcome ' + userCredential.user.email);
+        // Optionally, you can store the username in Firestore or Realtime Database here
+
+        // Optionally switch to login tab after successful registration:
+        loginTabBtn.click();
+      })
+      .catch(error => {
+        alert('Registration failed: ' + error.message);
+      });
+  });
+</script>
+
+</body>
+</html>
